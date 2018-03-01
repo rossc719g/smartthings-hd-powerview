@@ -36,7 +36,7 @@ def singlePagePref() {
         name: "singlePagePref", 
         install: canInstall(), 
         uninstall: true, 
-        refreshInterval: 10
+        refreshInterval: getPrefInterval()
     ) {
         // setup basic connection to hub
         section("Hub setup") {
@@ -58,21 +58,13 @@ def singlePagePref() {
 
         // manage hub details
         if (hubIP) {
+            fetchHubInfo()
+            fetchAllShades()
+            fetchAllScenes()
             def foundShades = getDiscoveredShadeList()
             def foundScenes = getDiscoveredSceneList()
             def shadeCount = foundShades.size()
             def sceneCount = foundScenes.size()
-            if (!state.hubMAC) {
-              fetchHubInfo()
-            } else {
-	            if (shadeCount == 0) {
-    	          fetchAllShades()
-        	    } else {
-	    	        if (sceneCount == 0) {
-    	    	      fetchAllScenes()
-		            }
-                }
-            }
             log.info("pref.singlePagePref - shadeCount=$shadeCount, sceneCount=$sceneCount")
 
             section("Shades") {
@@ -112,6 +104,13 @@ def singlePagePref() {
 def canInstall() {
     return state.hubIP ? true : false
 }
+
+// TODO: should this back off the refresh rate if we have an IP?
+def getPrefInterval() {
+    return 5
+    // state.hubIP ? 5 : 15
+}
+
 
 // ----------------------------------------------------------------------------
 // utility methods
@@ -207,8 +206,8 @@ def _fetchAllShadesCallback(response) {
         def shadeConfig = it.clone()
 
         // add our custom keys
-        def shadeLabel = new String(shadeConfig.name.decodeBase64())
-        def enumLabel = "${shadeLabel} (${shadeConfig.id})"
+        def shadeLabel = new String(it.name.decodeBase64())
+        def enumLabel = "${shadeLabel} (${it.id})"
         shadeConfig.label = shadeLabel // plain english name
         shadeConfig.enumLabel = enumLabel // awkward label for use with prefs
         shadeConfig.deviceNetworkId = getDeviceId('shade', it.id)
@@ -255,14 +254,8 @@ def _fetchAllScenesCallback(response) {
         def sceneConfig = it.clone()
 
         // add our custom keys
-        def sceneLabel
-        try {
-          sceneLabel = new String(sceneConfig.name.decodeBase64())
-        } catch (e) {
-          log.error "Error decoding scene ${sceneConfig.id} with name ${sceneConfig.name}"
-          log.error e
-        }
-        def enumLabel = "${sceneLabel} (${sceneConfig.id})"
+        def sceneLabel = new String(it.name.decodeBase64())
+        def enumLabel = "${sceneLabel} (${it.id})"
         sceneConfig.label = sceneLabel // plain english name
         sceneConfig.enumLabel = enumLabel // awkward label for use with prefs
         sceneConfig.deviceNetworkId = getDeviceId('scene', it.id)
