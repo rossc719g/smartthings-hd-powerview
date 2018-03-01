@@ -254,7 +254,15 @@ def _fetchAllScenesCallback(response) {
         def sceneConfig = it.clone()
 
         // add our custom keys
-        def sceneLabel = new String(it.name.decodeBase64())
+        def sceneLabel
+        try {
+          sceneLabel = new String(sceneConfig.name.decodeBase64())
+        } catch (e) {
+          log.error "Error decoding scene ${sceneConfig.id} with name ${sceneConfig.name}"
+          log.error e
+          sceneLabel = "${it.id} ${it.name}"
+        }
+
         def enumLabel = "${sceneLabel} (${it.id})"
         sceneConfig.label = sceneLabel // plain english name
         sceneConfig.enumLabel = enumLabel // awkward label for use with prefs
