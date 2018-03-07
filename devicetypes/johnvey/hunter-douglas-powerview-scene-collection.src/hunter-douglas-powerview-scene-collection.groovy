@@ -117,7 +117,7 @@ def updated() {
 // implement the momentary method
 def push() {
     log.debug("CMD push()")
-    sendRequest("GET", "/api/scenecollections?sceneCollectionId=${state.pvSceneId}")
+    sendRequest("GET", "/api/scenecollections?sceneCollectionId=${state.pvSceneCollectionId}")
 }
 
 def on() {
