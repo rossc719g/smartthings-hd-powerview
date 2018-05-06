@@ -155,6 +155,7 @@ def getDeviceId(deviceType, pvId) {
     switch (deviceType) {
         case 'shade':
         case 'scene':
+        case 'scenecollection':
             // valid
             break
         default:
@@ -224,9 +225,16 @@ def _fetchAllShadesCallback(response) {
         def shadeConfig = it.clone()
 
         // add our custom keys
-        def shadeLabel = new String(it.name.decodeBase64())
+        def shadeLabel
+        try {
+          shadeLabel = new String(it.name.decodeBase64())
+        } catch (e) {
+          log.error "Error decoding shade ${it.id} with name ${it.name}"
+          log.error e
+          shadeLabel = "${it.id} ${it.name}"
+        }
         def enumLabel = "${shadeLabel} (${it.id})"
-        shadeConfig.label = shadeLabel // plain english name
+        shadeConfig.label = "Blind ${shadeLabel}" // plain english name
         shadeConfig.enumLabel = enumLabel // awkward label for use with prefs
         shadeConfig.deviceNetworkId = getDeviceId('shade', it.id)
 
@@ -278,11 +286,11 @@ def _fetchAllScenesCallback(response) {
         } catch (e) {
           log.error "Error decoding scene ${it.id} with name ${it.name}"
           log.error e
-          sceneLabel = "Scene ${it.id} ${it.name}"
+          sceneLabel = "${it.id} ${it.name}"
         }
 
         def enumLabel = "${sceneLabel} (${it.id})"
-        sceneConfig.label = sceneLabel // plain english name
+        sceneConfig.label = "Blinds ${sceneLabel}" // plain english name
         sceneConfig.enumLabel = enumLabel // awkward label for use with prefs
         sceneConfig.deviceNetworkId = getDeviceId('scene', it.id)
 
@@ -334,11 +342,11 @@ def _fetchAllSceneCollectionsCallback(response) {
         } catch (e) {
           log.error "Error decoding scene collection ${it.id} with name ${it.name}"
           log.error e
-          sceneCollectionLabel = "Scene collection ${it.id} ${it.name}"
+          sceneCollectionLabel = "${it.id} ${it.name}"
         }
 
         def enumLabel = "${sceneCollectionLabel} (${it.id})"
-        sceneCollectionConfig.label = sceneLabel // plain english name
+        sceneCollectionConfig.label = "Blinds ${sceneCollectionLabel}" // plain english name
         sceneCollectionConfig.enumLabel = enumLabel // awkward label for use with prefs
         sceneCollectionConfig.deviceNetworkId = getDeviceId('scenecollection', it.id)
 
